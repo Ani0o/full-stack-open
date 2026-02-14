@@ -14,6 +14,8 @@ const App = () => {
    
   const [selected, setSelected] = useState(0)
 
+  const [votes, setVotes] = useState(Array(8).fill(0))
+
   const randomNum = (min, max) => {
     const minCeiled = Math.ceil(min)
     const maxFloored = Math.floor(max)
@@ -24,10 +26,19 @@ const App = () => {
     setSelected(randomNum(0, 7))
   }
 
+  const handleVote = () => {
+    const copy = [...votes]
+    copy[selected] += 1
+    setVotes(copy)
+  }
+
   return (
     <div>
       {anecdotes[selected]}
       <br />
+      has {votes[selected]} votes
+      <br />
+      <button onClick={handleVote}>vote</button>
       <button onClick={handleNext}>next anecdote</button>
     </div>
   )
