@@ -20,17 +20,18 @@ const PersonForm = (props) => {
           number: <input value={props.newNumber} onChange={props.handleNumber}/>
         </div>
         <div>
-          <button type="submit" onClick={props.handleClick}>add</button>
+          <button type="submit" onClick={props.handleAdd}>add</button>
         </div>
       </form>
     </div>
   )
 }
 
-const Persons = (props) => {
+const Person = ({ name, number, handleDelete }) => {
   return (
     <div>
-      {props.personsToShow.map(person => <div key={person.name}>{person.name} {person.number}</div>)}
+      {name} {number}
+      <button onClick={handleDelete}>delete</button>
     </div>
   )
 }
@@ -58,7 +59,7 @@ const App = () => {
     })
     : persons
 
-  const handleClick = (event) => {
+  const handleAdd = (event) => {
     event.preventDefault()
 
     const exists = persons.some((person) => person.name === newName)
@@ -93,6 +94,20 @@ const App = () => {
     setSearch(event.target.value)
   }
 
+  const handleDelete = (id) => {
+    const url = `http://localhost:3001/persons/${id}`
+    const person = persons.find(person => person.id === id)
+
+    const confirm = window.confirm(`Delete ${person.name}`)
+    if (confirm === false) return
+
+    personServices
+      .remove(url)
+      .then(() => {
+        setPersons(persons.filter(p => p.id !== person.id))
+      })
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -101,11 +116,13 @@ const App = () => {
 
       <h2>add a new</h2>
 
-      <PersonForm newName={newName} handleName={handleName} newNumber={newNumber} handleNumber={handleNumber} handleClick={handleClick} />
+      <PersonForm newName={newName} handleName={handleName} newNumber={newNumber} handleNumber={handleNumber} handleAdd={handleAdd} />
 
       <h2>Numbers</h2>
 
-      <Persons personsToShow={personsToShow} />
+      <div>
+      {personsToShow.map(person => <Person key={person.id} name={person.name} number={person.number} handleDelete={() => handleDelete(person.id)} />)}
+      </div>
     </div>
   )
 }
