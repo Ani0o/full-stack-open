@@ -36,11 +36,24 @@ const Person = ({ name, number, handleDelete }) => {
   )
 }
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="error">
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [search, setSearch] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     personServices
@@ -73,6 +86,11 @@ const App = () => {
       personServices
         .update(person.id, personObject)
         .then(returnedPerson => {
+          setErrorMessage(`Updated ${returnedPerson.name}`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+
           setPersons(persons.map(p => p.name === person.name ? returnedPerson : p))
         })
     }
@@ -82,10 +100,15 @@ const App = () => {
         name: newName,
         number: newNumber
       }
-
+      console.log(person)
       personServices
         .create(personObject)
         .then(returnedPerson => {
+          setErrorMessage(`Added ${returnedPerson.name}`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
@@ -115,6 +138,11 @@ const App = () => {
     personServices
       .remove(url)
       .then(() => {
+        setErrorMessage(`Deleted ${person.name}`)
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+
         setPersons(persons.filter(p => p.id !== person.id))
       })
   }
@@ -122,6 +150,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={errorMessage} />
 
       <Filter handleSearch={handleSearch} />
 
