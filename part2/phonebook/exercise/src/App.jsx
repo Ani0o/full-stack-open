@@ -36,13 +36,13 @@ const Person = ({ name, number, handleDelete }) => {
   )
 }
 
-const Notification = ({ message }) => {
+const Notification = ({ message, className }) => {
   if (message === null) {
     return null
   }
 
   return (
-    <div className="error">
+    <div className={className}>
       {message}
     </div>
   )
@@ -54,6 +54,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [search, setSearch] = useState('')
   const [errorMessage, setErrorMessage] = useState(null)
+  const [className, setClassName] = useState('success')
 
   useEffect(() => {
     personServices
@@ -86,12 +87,22 @@ const App = () => {
       personServices
         .update(person.id, personObject)
         .then(returnedPerson => {
+          setClassName('success')
           setErrorMessage(`Updated ${returnedPerson.name}`)
           setTimeout(() => {
             setErrorMessage(null)
           }, 5000)
 
           setPersons(persons.map(p => p.name === person.name ? returnedPerson : p))
+        })
+        .catch(error => {
+          setClassName('error')
+          setErrorMessage(`Information of ${person.name} has already been removed from server`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+
+          setPersons(persons.filter(p => p.name !== person.name))
         })
     }
 
@@ -104,6 +115,7 @@ const App = () => {
       personServices
         .create(personObject)
         .then(returnedPerson => {
+          setClassName('success')
           setErrorMessage(`Added ${returnedPerson.name}`)
           setTimeout(() => {
             setErrorMessage(null)
@@ -138,6 +150,7 @@ const App = () => {
     personServices
       .remove(url)
       .then(() => {
+        setClassName('success')
         setErrorMessage(`Deleted ${person.name}`)
         setTimeout(() => {
           setErrorMessage(null)
@@ -151,7 +164,7 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={errorMessage} />
+      <Notification message={errorMessage} className={className} />
 
       <Filter handleSearch={handleSearch} />
 
