@@ -62,24 +62,35 @@ const App = () => {
   const handleAdd = (event) => {
     event.preventDefault()
 
-    const exists = persons.some((person) => person.name === newName)
-    if (exists === true) {
-      alert(`${newName} is already added to phonebook`)
-      return
+    const person = persons.find((person) => person.name === newName)
+
+    if (person !== undefined) {
+      const confirm = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
+      if (confirm === false) return
+
+      const personObject = { ...person, number: newNumber }
+
+      personServices
+        .update(person.id, personObject)
+        .then(returnedPerson => {
+          setPersons(persons.map(p => p.name === person.name ? returnedPerson : p))
+        })
     }
 
-    const personObject = {
-      name: newName,
-      number: newNumber
-    }
+    else {
+      const personObject = {
+        name: newName,
+        number: newNumber
+      }
 
-    personServices
-      .create(personObject)
-      .then(returnedPerson => {
-        setPersons(persons.concat(returnedPerson))
-        setNewName('')
-        setNewNumber('')
-      })
+      personServices
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+    }
   }
 
   const handleName = (event) => {
