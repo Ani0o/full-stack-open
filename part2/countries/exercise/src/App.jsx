@@ -2,21 +2,43 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 
 const Data = ({searchResult}) => {
-  if (searchResult.length > 10 && searchResult.length != 250) {
-    return(
+  const languages = Object.values(searchResult.languages)
+
+  return (
+    <div>
+      <h1>{searchResult.name.common}</h1>
+
+      Capital {searchResult.capital} <br />
+      Area {searchResult.area}
+
+      <h1>Languages</h1>
+      <ul>
+        {languages.map(language => <li key={language}>{language}</li>)}
+      </ul>
+
+      <img src={searchResult.flags.png} alt={searchResult.flags.alt}></img>
+    </div>
+  )
+}
+
+const Country = ({ searchResult, showData, handleShowData }) => {
+  if (searchResult.length > 10 && searchResult.length !== 250) {
+    return (
       <div>
         Too many matches, specify another filter
       </div>
     )
   }
 
-  else if (searchResult.length != 1 && searchResult.length <= 10) {
-    return(
+  else if (searchResult.length !== 1 && searchResult.length <= 10) {
+    return (
       <div>
         {searchResult.map(country => {
-          return(
+          return (
             <div key={country.name.common}>
               {country.name.common}
+              <button onClick={() => handleShowData(country.name.common)}>{showData[country.name.common] ? 'hide' : 'show'}</button>
+              {showData[country.name.common] && <Data searchResult={country}/>}
             </div>
           )
         })}
@@ -24,23 +46,9 @@ const Data = ({searchResult}) => {
     )
   }
   
-  else if (searchResult.length == 1) {
-    const languages = Object.values(searchResult[0].languages)
-
-    return(
-      <div>
-        <h1>{searchResult[0].name.common}</h1>
-
-        Capital {searchResult[0].capital} <br />
-        Area {searchResult[0].area}
-
-        <h1>Languages</h1>
-        <ul>
-          {languages.map(language => <li key={language}>{language}</li>)}
-        </ul>
-
-        <img src={searchResult[0].flags.png} alt={searchResult[0].flags.alt}></img>
-      </div>
+  else if (searchResult.length === 1) {
+    return (
+      <Data searchResult={searchResult[0]} />
     )
   }
 }
@@ -48,6 +56,7 @@ const Data = ({searchResult}) => {
 const App = () => {
   const [value, setValue] = useState('')
   const [countries, setCountries] = useState([])
+  const [showData, setShowData] = useState({})
 
   useEffect(() => {
     axios
@@ -60,16 +69,32 @@ const App = () => {
     return pattern.test(country.name.common)
   })
 
+  useEffect(() => {
+    const newShowData = {}
+    searchResult.forEach(country => {
+      newShowData[country.name.common] = false
+    })
+    setShowData(newShowData)
+  }, [value, countries])
+
   const handleChange = (event) => {
     setValue(event.target.value)
   }
 
-  return(
+  const handleShowData = (countryName) => {
+    setShowData(prev => {
+      return (
+        {...prev, [countryName]: !prev[countryName]}
+      )
+    })
+  }
+
+  return (
     <div>
       <div>
         find countries <input value={value} onChange={handleChange}></input>
       </div>
-      <Data searchResult={searchResult} />
+      <Country searchResult={searchResult} showData={showData} handleShowData={handleShowData} />
     </div>
   )
 }
