@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-const Data = ({searchResult}) => {
+const Data = ({ searchResult }) => {
+  const [weatherData, setWeatherData] = useState(null)
+  const [loading, setLoading] = useState(true)
   const languages = Object.values(searchResult.languages)
+
+  useEffect(() => {
+    axios
+      .get(`https://api.openweathermap.org/data/2.5/weather?q=${searchResult.capital}&appid=${import.meta.env.VITE_SOME_KEY}`)
+      .then(response => {
+        setWeatherData(response.data)
+        setLoading(false)
+      })
+  }, [searchResult])
+
+  if (loading) return
+  const imgSrc = `https://openweathermap.org/payload/api/media/file/${weatherData.weather[0].icon}%402x.png`
 
   return (
     <div>
@@ -16,7 +30,15 @@ const Data = ({searchResult}) => {
         {languages.map(language => <li key={language}>{language}</li>)}
       </ul>
 
-      <img src={searchResult.flags.png} alt={searchResult.flags.alt}></img>
+      <img src={searchResult.flags.png} alt={searchResult.flags.alt} />
+
+      <h1>Weather in {searchResult.capital}</h1>
+
+      Temperature {[weatherData.main.temp] - 273.15} Celsius
+      <br />
+      <img src={imgSrc} alt={weatherData.weather[0].description} />
+      <br />
+      Wind {weatherData.wind.speed} m/s
     </div>
   )
 }
@@ -38,7 +60,7 @@ const Country = ({ searchResult, showData, handleShowData }) => {
             <div key={country.name.common}>
               {country.name.common}
               <button onClick={() => handleShowData(country.name.common)}>{showData[country.name.common] ? 'hide' : 'show'}</button>
-              {showData[country.name.common] && <Data searchResult={country}/>}
+              {showData[country.name.common] && <Data searchResult={country} />}
             </div>
           )
         })}
