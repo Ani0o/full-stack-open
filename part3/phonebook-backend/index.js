@@ -1,5 +1,7 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -35,26 +37,24 @@ persons = [
 ]
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(persons => {
+      response.json(persons)
+    })
 })
 
 app.get('/info', (request, response) => {
-    const numberOfPersons = persons.length
-    const currentDate = new Date()
+    Person.find({}).then(persons => {
+      const numberOfPersons = persons.length
+      const currentDate = new Date()
 
-    response.send(`Phonebook has info for ${numberOfPersons} people <br /> <br />` + currentDate)
+      response.send(`Phonebook has info for ${numberOfPersons} people <br /> <br />` + currentDate)
+    })  
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = persons.find(person => person.id === id)
-  
-  if (person) {
-    response.send(person)
-  }
-  else {
-    response.status(404).end()
-  }
+  Person.findById(request.params.id).then(person => {
+    response.json(person)
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -68,28 +68,20 @@ app.post('/api/persons', (request, response) => {
   const body = request.body
 
   if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'content missing'
-    })
+    return response.status(400).json({ error: 'content missing' })
   }
 
-  if (persons.find(person => person.name === body.name)) {
-    return response.status(409).json({
-      error: 'name must be unique'
-    })
-  }
-
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: Math.floor(Math.random() * 10000)
-  }
+  })
 
-  persons.concat(person)
-  response.json(person)
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
 })
