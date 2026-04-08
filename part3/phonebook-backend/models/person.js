@@ -19,6 +19,13 @@ const personSchema = new mongoose.Schema({
     },
     number: {
         type: String,
+        minLength: 8,
+        validate: {
+            validator: value => {
+                return /^\d{2,3}-\d{5,8}$/.test(value)
+            },
+            message: 'Number should be in the format XX-XXXXXX. Before hyphen 2-3 digits, after it 5-8 digits.'
+        },
         required: true
     }
 })
